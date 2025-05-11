@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Client</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin-left: 5px;
+    }
+    ul {
+      margin-top: 20px;
+      padding: 0;
+      list-style-type: none;
+    }
+    li {
+      background: white;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Client WebSocket</h1>
+  <input type="text" id="message" placeholder="Message">
+  <button onclick="sendMessage()">Envoyer</button>
+  <button onclick="loadHistory()">Historique</button>
+  <ul id="messages"></ul>
+
+  <script>
+    const ws = new WebSocket("ws://localhost:9090");
+
+    ws.onopen = () => {
+      console.log("✅ WebSocket connecté !");
+    };
+
+    ws.onerror = (error) => {
+      console.error("❌ WebSocket erreur :", error);
+    };
+
+    ws.onmessage = function(event) {
+      console.log("📩 Message reçu :", event.data);
+      const msg = JSON.parse(event.data);
+      const li = document.createElement("li");
+      li.textContent = JSON.stringify(msg, null, 2);
+      document.getElementById("messages").appendChild(li);
+    };
+
+    function sendMessage() {
+      const input = document.getElementById("message");
+      const msg = {
+        chat_message: {
+          id: "msg" + Date.now(),
+          room_id: "room1",
+          sender_id: "client1",
+          content: input.value
+        }
+      };
+      ws.send(JSON.stringify(msg));
+      input.value = "";
+    }
+
+    function loadHistory() {
+      ws.send(JSON.stringify({ type: "history" }));
+    }
+  </script>
+</body>
+</html>
